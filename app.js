@@ -109,7 +109,10 @@ function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
         return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
     const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
-    res.json('Se creo el documento en la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]}')
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    res.json({
+        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+    });
 });`
     }
     
@@ -142,7 +145,10 @@ function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
         return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const {id} = req.params;
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
-    res.json('Se actualizo el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    res.json({
+        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+    });
 });`
     }
     
@@ -175,7 +181,10 @@ function obtenerMetodoDeleteDeLaColeccion(numeroDeLaColeccion){
         return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const {id} = req.params;
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
-    res.json('Se elimino el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    res.json({
+        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+    });
 });`
     }
     
