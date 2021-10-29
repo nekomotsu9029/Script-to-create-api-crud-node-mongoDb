@@ -6,6 +6,7 @@ const fs = require('fs')
 let nombreDeLaBaseDeDatos = "Escuela"
 
 //Configurar preferencias
+//si agregarLogin==true, no agregues la coleccion del usuario, ya se pone sola
 let preferencias = {
     agregarLogin: true
 }
@@ -30,6 +31,13 @@ function obtenerTemplateDeImportacionDeModelosEnRoutes(){
     let numeroDeModelos = Object.keys(colecciones).length;
     let nombresDeLosModelos = Object.keys(colecciones);
     let contenido;
+    if(preferencias.agregarLogin){
+        contenido += `
+const jwt = require('jsonwebtoken')
+const secretToken = 'nekomotsuSecretToken'
+const _user = require('../models/user');
+        `
+    }
     for(let i=0; i<numeroDeModelos; i++){
         contenido += `
 const _${nombresDeLosModelos[i]} = require('../models/${nombresDeLosModelos[i]}');
@@ -39,41 +47,281 @@ const _${nombresDeLosModelos[i]} = require('../models/${nombresDeLosModelos[i]}'
 }
 
 function obtenerMetodoGetDeLaColeccion(numeroDeLaColeccion){
-    return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    if(preferencias.agregarLogin){
+        return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id, {password: 0});
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
     const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
     res.json({
         ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
     });
 });`
+    }else{
+        return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    res.json({
+        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+    });
+});`
+    }
+    
 }
 
 function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
-    return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    if(preferencias.agregarLogin){
+        return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id, {password: 0});
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
     const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
     res.json('Se creo el documento en la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]}')
 });`
+    }else{
+        return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
+    res.json('Se creo el documento en la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]}')
+});`
+    }
+    
 }
 
 function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
-    return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    if(preferencias.agregarLogin){
+        return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id, {password: 0});
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
     res.json('Se actualizo el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
 });`
+    }else{
+        return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const {id} = req.params;
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
+    res.json('Se actualizo el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+});`
+    }
+    
 }
 
 function obtenerMetodoDeleteDeLaColeccion(numeroDeLaColeccion){
-    return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    if(preferencias.agregarLogin){
+        return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id, {password: 0});
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
     await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
     res.json('Se elimino el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
 });`
+    }else{
+        return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const {id} = req.params;
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
+    res.json('Se elimino el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+});`
+    }
+    
 }
 
 function obtenerEndPoints(){
     let numeroDeModelos = Object.keys(colecciones).length;
     let contenido;
+    if(preferencias.agregarLogin){
+        contenido += `//const {name, email, password} = req.body;
+router.post('/api/signup', async (req, res)=>{
+    const {name, email, password} = req.body;
+    const user = await _user.findOne({email: email});
+    if(user){
+        return res.json({
+            auth: false,
+            message: "Parece que tu Doppelgänger ya a creado una cuenta con este correo :( que miedo!   "
+        })
+    }
+    const userSave = new _user({
+        name,
+        email,
+        password,
+        img: 'http://placekitten.com/200/200',
+        theme: 'sketchy'
+    });
+    userSave.password = await userSave.encryptPassword(userSave.password);
+    await userSave.save();
+    const token = jwt.sign({id: userSave._id}, secretToken, {
+        expiresIn: 60 * 60 * 24 * 2
+    })
+    res.json({
+        auth: true,
+        token
+    })
+});
+
+//const {email, password} = req.body;
+router.post('/api/signin', async (req, res)=>{
+    const {email, password} = req.body;
+    const user = await _user.findOne({
+        email
+    });
+    if(!user){
+        return res.json({
+            auth: false,
+            message: "No existe una cuenta Woble con este correo :(   "
+        })
+    }
+    const passwordIsValid = await user.comparePassword(password);
+    if(!passwordIsValid){
+        return res.json({
+            auth: false,
+            message: "Esta contraseña no coincide con la cuenta "+email+'   '
+        })
+    }
+    const token = jwt.sign({id: user._id}, secretToken, {
+        expiresIn: 60 * 60 * 24 * 2
+    })
+    res.json({
+        auth: true,
+        token
+    })
+});
+
+router.get('/api/user', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id, {password: 0});
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    res.json({
+        auth: true,
+        user
+    })
+});
+//const {name, email, changepass, password} = req.body;
+router.put('/api/user', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id);
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
+    //ahora procedo a editar el usuario
+    const {name, email, changepass, password} = req.body;
+    user.name = name;
+    user.email = email;
+    if(changepass == true && password != ''){
+        user.password = user.encryptPassword(password);
+    }
+    await _user.updateOne({_id: user._id}, user);
+    res.json({
+        auth: true,
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email
+        }
+    })
+});
+
+router.delete('/api/user', async (req, res)=>{
+    const tokenClient = req.header('x-access-token');
+    if(!tokenClient){
+        return res.status(401).json({
+            auth: false,
+            message: 'No token provided'
+        });
+    }
+    const decoded = jwt.verify(tokenClient, secretToken);
+    const user = await _user.findById(decoded.id);
+    if(!user){
+        return res.json({
+            auth: false,
+            message: 'No user found'
+        })
+    }
+    //si llega aqui es por que encontro el usuario gracias al token
+    //ahora procedo a eliminar el usuario
+    await _user.remove({_id: user._id});
+    res.json({
+        auth: false,
+        message: 'User delete'
+    })
+});`
+    }
     for(let i=0; i<numeroDeModelos; i++){
         //por cada modelo hacemos sus get;post;put;delete
         contenido += `
@@ -124,6 +372,7 @@ function generarArchivoPrincipal(){
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
+const cors = require('cors');
 
 //inicializo express y la base de datos
 const app = express();
@@ -137,6 +386,7 @@ app.use(express.static( path.join( __dirname, 'public' ) ));
 
 //configuro los middlewares
 app.use(morgan('dev'));
+app.use(cors());
 app.use(express.urlencoded({
     extended: false
 }));
@@ -181,9 +431,35 @@ function generarModelos(){
     let numeroDeModelos = Object.keys(colecciones).length;
     let nombresDeLosModelos = Object.keys(colecciones);
     let ruta = "./src/models/"
+    let contenido;
+    if(preferencias.agregarLogin){
+        contenido = `const mongoose = require('mongoose');
+const bcrypt = require('bcrypt-nodejs');
+
+const {Schema} = mongoose;
+
+const user = new Schema({
+    name: String,
+    email: String,
+    password: String
+});
+
+user.methods.encryptPassword = (password) => {
+    return bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+};
+
+user.methods.comparePassword = function (password) {
+    return bcrypt.compareSync(password, this.password);
+};
+
+module.exports = mongoose.model('user', user);`
+
+fs.writeFileSync(ruta+"user.js", contenido);
+
+    }
     for(let i=0; i<numeroDeModelos; i++){
         try{
-            let contenido = obtenerModeloDeLaColeccionNumero(i)+'';
+            contenido = obtenerModeloDeLaColeccionNumero(i)+'';
             let re = /"/g;
             contenido = contenido.replace(re, '')
             fs.writeFileSync(ruta+nombresDeLosModelos[i]+".js", contenido);
