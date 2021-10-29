@@ -35,6 +35,7 @@ function obtenerTemplateDeImportacionDeModelosEnRoutes(){
         contenido += `
 const jwt = require('jsonwebtoken')
 const secretToken = 'nekomotsuSecretToken'
+
 const _user = require('../models/user');
         `
     }
@@ -197,9 +198,7 @@ router.post('/api/signup', async (req, res)=>{
     const userSave = new _user({
         name,
         email,
-        password,
-        img: 'http://placekitten.com/200/200',
-        theme: 'sketchy'
+        password
     });
     userSave.password = await userSave.encryptPassword(userSave.password);
     await userSave.save();
