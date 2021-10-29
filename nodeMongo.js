@@ -11,7 +11,7 @@ let colecciones = {
     "carrera": {"nombre": "String", "pensum":"[]"}
 }
 
-/*  -- FIN CONFIGURACION --  */
+/*  -- METODOS UTILES --  */
 
 //Arreglo con los nombres de las colecciones
 let tituloDeLasColecciones = Object.keys(colecciones)
@@ -19,6 +19,68 @@ let tituloDeLasColecciones = Object.keys(colecciones)
 //retorna el esquema del objeto de una coleccion
 function valorDeLaColeccionNumero(numeroDeLaColeccion){
     return colecciones[ tituloDeLasColecciones[numeroDeLaColeccion] ]
+}
+
+function obtenerModelos(){
+    let numeroDeModelos = Object.keys(colecciones).length;
+    let nombresDeLosModelos = Object.keys(colecciones);
+    let contenido;
+    for(let i=0; i<numeroDeModelos; i++){
+        contenido += `
+const _${nombresDeLosModelos[i]} = require('../models/${nombresDeLosModelos[i]}');
+`
+    }
+    return contenido;
+}
+
+function obtenerMetodoGetDeLaColeccion(numeroDeLaColeccion){
+    return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    res.json({
+        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+    });
+});`
+}
+
+function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
+    return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
+    res.json('Se creo el documento en la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]}')
+});`
+}
+
+function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
+    return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const {id} = req.params;
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
+    res.json('Se actualizo el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+});`
+}
+
+function obtenerMetodoDeleteDeLaColeccion(numeroDeLaColeccion){
+    return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+    const {id} = req.params;
+    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
+    res.json('Se elimino el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+});`
+}
+
+function obtenerEndPoints(){
+    let numeroDeModelos = Object.keys(colecciones).length;
+    let contenido;
+    for(let i=0; i<numeroDeModelos; i++){
+        //por cada modelo hacemos sus get;post;put;delete
+        contenido += `
+` + obtenerMetodoGetDeLaColeccion(i) + `
+
+` + obtenerMetodoPostDeLaColeccion(i) + `
+
+` + obtenerMetodoPutDeLaColeccion(i) + `
+
+` + obtenerMetodoDeleteDeLaColeccion(i) + ``
+    }
+    return contenido;
 }
 
 //devuelve un template con el modelo de la coleccion que corresponda al numero solicitado
@@ -128,11 +190,35 @@ function generarModelos(){
 }
 
 function generarRutas(){
+    console.log("Creando el archivo de rutas...")
+    let cabezaDeRoutes = `const express = require('express');
+const router = express.Router();`
+    let modelos = obtenerModelos();
+    let endPoints = obtenerEndPoints();
+    let exportarRoutes = `module.exports = router;`
     
+    let contenido = `${cabezaDeRoutes}
+${modelos}
+${endPoints}
+
+${exportarRoutes}`;
+
+    let ruta = "./src/routes/"
+
+    var re = /undefined/g;
+    contenido = contenido.replace(re, '')
+
+    try{
+        fs.writeFileSync(ruta+"routes.js", contenido);
+        console.log("Archivo de rutas listo!")
+    }catch(err){
+        console.log('Error al crear el archivo de rutas :(')
+        console.log(err)
+    }
 }
 
 generarEstructuraDeCarpetas()
 generarArchivoPrincipal()
 generarConfiguracionDeLaBaseDeDatos()
 generarModelos()
-
+generarRutas()
