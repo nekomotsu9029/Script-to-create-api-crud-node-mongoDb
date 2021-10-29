@@ -7,9 +7,7 @@ let nombreDeLaBaseDeDatos = "Escuela"
 
 //Configurar preferencias
 let preferencias = {
-    validaciones: true,
-    agregarLogin: true,
-    jwt: true
+    agregarLogin: true
 }
 
 //Agregar las colecciones de la base de datos aca
@@ -28,7 +26,7 @@ function valorDeLaColeccionNumero(numeroDeLaColeccion){
     return colecciones[ tituloDeLasColecciones[numeroDeLaColeccion] ]
 }
 
-function obtenerModelos(){
+function obtenerTemplateDeImportacionDeModelosEnRoutes(){
     let numeroDeModelos = Object.keys(colecciones).length;
     let nombresDeLosModelos = Object.keys(colecciones);
     let contenido;
@@ -202,7 +200,7 @@ function generarRutas(){
     console.log("Creando el archivo de rutas...")
     let cabezaDeRoutes = `const express = require('express');
 const router = express.Router();`
-    let modelos = obtenerModelos();
+    let modelos = obtenerTemplateDeImportacionDeModelosEnRoutes();
     let endPoints = obtenerEndPoints();
     let exportarRoutes = `module.exports = router;`
     
