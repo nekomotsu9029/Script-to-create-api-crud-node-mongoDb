@@ -5,7 +5,14 @@ const fs = require('fs')
 //Nombre de la base de datos
 let nombreDeLaBaseDeDatos = "Escuela"
 
-//agregar las colecciones de la base de datos aca
+//Configurar preferencias
+let preferencias = {
+    validaciones: true,
+    agregarLogin: true,
+    jwt: true
+}
+
+//Agregar las colecciones de la base de datos aca
 let colecciones = {
     "usuario": {"nombre": "String", "edad": "String", "carrera": "String"},
     "carrera": {"nombre": "String", "pensum":"[]"}
@@ -179,7 +186,8 @@ function generarModelos(){
     for(let i=0; i<numeroDeModelos; i++){
         try{
             let contenido = obtenerModeloDeLaColeccionNumero(i)+'';
-            contenido = contenido.replace(/[ '"]+/g, ' ')
+            let re = /"/g;
+            contenido = contenido.replace(re, '')
             fs.writeFileSync(ruta+nombresDeLosModelos[i]+".js", contenido);
             console.log("Modelo "+nombresDeLosModelos[i]+" listo!")
         }catch(err){
@@ -189,6 +197,7 @@ function generarModelos(){
     }
 }
 
+//este metodo crea el archivo routes.js con los endPoints
 function generarRutas(){
     console.log("Creando el archivo de rutas...")
     let cabezaDeRoutes = `const express = require('express');
@@ -217,8 +226,22 @@ ${exportarRoutes}`;
     }
 }
 
-generarEstructuraDeCarpetas()
-generarArchivoPrincipal()
-generarConfiguracionDeLaBaseDeDatos()
-generarModelos()
-generarRutas()
+function crearProyecto(){
+    console.log("********** Crud Node & MongoDb By Nekomotsu9029 *********")
+    generarEstructuraDeCarpetas()
+    generarArchivoPrincipal()
+    generarConfiguracionDeLaBaseDeDatos()
+    generarModelos()
+    generarRutas()
+    console.log(`
+********** Proyecto creado *********
+
+Ejecuta estos comandos secuencialmente
+
+1. npm init -y
+2. npm install express mongoose morgan
+3. node src/server.js
+`)
+}
+
+crearProyecto()
