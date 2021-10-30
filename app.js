@@ -2,34 +2,31 @@ const fs = require('fs')
 
 /*  -- CONFIGURACION --  */
 
-//Nombre de la base de datos
-let nombreDeLaBaseDeDatos = "Escuela"
-
-//Configurar preferencias
 //si agregarLogin==true, no agregues la coleccion del usuario, ya se pone sola
 let preferencias = {
-    agregarLogin: true
+    nombreBaseDeDatos: "Example",
+    agregarLogin: true,
+    puerto: 3000
 }
 
-//Agregar las colecciones de la base de datos aca
+//Agregar las colecciones que tendra la base de datos aca
 let colecciones = {
-    "usuario": {"nombre": "String", "edad": "String", "carrera": "String"},
-    "carrera": {"nombre": "String", "pensum":"[]"}
+    "cliente": {"tipo": "String", "apellido": "String", "nombre": "String", "ciudad": "String"},
+    "item": {"album": "String","año": "String", "cantidad":"String", "precio": "String", "artista": "String"}
 }
 
 /*  -- METODOS UTILES --  */
 
 //Arreglo con los nombres de las colecciones
-let tituloDeLasColecciones = Object.keys(colecciones)
+let nombresDeLosModelos = Object.keys(colecciones)
 
 //retorna el esquema del objeto de una coleccion
 function valorDeLaColeccionNumero(numeroDeLaColeccion){
-    return colecciones[ tituloDeLasColecciones[numeroDeLaColeccion] ]
+    return colecciones[ nombresDeLosModelos[numeroDeLaColeccion] ]
 }
 
 function obtenerTemplateDeImportacionDeModelosEnRoutes(){
     let numeroDeModelos = Object.keys(colecciones).length;
-    let nombresDeLosModelos = Object.keys(colecciones);
     let contenido;
     if(preferencias.agregarLogin){
         contenido += `
@@ -49,7 +46,7 @@ const _${nombresDeLosModelos[i]} = require('../models/${nombresDeLosModelos[i]}'
 
 function obtenerMetodoGetDeLaColeccion(numeroDeLaColeccion){
     if(preferencias.agregarLogin){
-        return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+        return `router.get('/api/${nombresDeLosModelos[numeroDeLaColeccion]}', async (req, res)=>{
     const tokenClient = req.header('x-access-token');
     if(!tokenClient){
         return res.status(401).json({
@@ -66,16 +63,17 @@ function obtenerMetodoGetDeLaColeccion(numeroDeLaColeccion){
         })
     }
     //si llega aqui es por que encontro el usuario gracias al token
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Find = await _${nombresDeLosModelos[numeroDeLaColeccion]}.find();
     res.json({
-        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+        ${nombresDeLosModelos[numeroDeLaColeccion]}s: _${nombresDeLosModelos[numeroDeLaColeccion]}Find
     });
 });`
     }else{
-        return `router.get('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+        return `
+router.get('/api/${nombresDeLosModelos[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Find = await _${nombresDeLosModelos[numeroDeLaColeccion]}.find();
     res.json({
-        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+        ${nombresDeLosModelos[numeroDeLaColeccion]}s: _${nombresDeLosModelos[numeroDeLaColeccion]}Find
     });
 });`
     }
@@ -84,7 +82,7 @@ function obtenerMetodoGetDeLaColeccion(numeroDeLaColeccion){
 
 function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
     if(preferencias.agregarLogin){
-        return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
+        return `router.post('/api/${nombresDeLosModelos[numeroDeLaColeccion]}', async (req, res)=>{
     const tokenClient = req.header('x-access-token');
     if(!tokenClient){
         return res.status(401).json({
@@ -101,17 +99,17 @@ function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
         })
     }
     //si llega aqui es por que encontro el usuario gracias al token
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
-    res.json('Se creo el documento en la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]}')
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Save = new _${nombresDeLosModelos[numeroDeLaColeccion]}(req.body);
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}Save.save();
+    res.json('Se creo el documento en la coleccion ${nombresDeLosModelos[numeroDeLaColeccion]}')
 });`
     }else{
-        return `router.post('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}', async (req, res)=>{
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Save = new _${tituloDeLasColecciones[numeroDeLaColeccion]}(req.body);
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}Save.save();
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+        return `router.post('/api/${nombresDeLosModelos[numeroDeLaColeccion]}', async (req, res)=>{
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Save = new _${nombresDeLosModelos[numeroDeLaColeccion]}(req.body);
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}Save.save();
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Find = await _${nombresDeLosModelos[numeroDeLaColeccion]}.find();
     res.json({
-        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+        ${nombresDeLosModelos[numeroDeLaColeccion]}s: _${nombresDeLosModelos[numeroDeLaColeccion]}Find
     });
 });`
     }
@@ -120,7 +118,7 @@ function obtenerMetodoPostDeLaColeccion(numeroDeLaColeccion){
 
 function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
     if(preferencias.agregarLogin){
-        return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+        return `router.put('/api/${nombresDeLosModelos[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const tokenClient = req.header('x-access-token');
     if(!tokenClient){
         return res.status(401).json({
@@ -138,16 +136,16 @@ function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
     }
     //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
-    res.json('Se actualizo el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}.update({_id: id}, req.body);
+    res.json('Se actualizo el documento de la coleccion ${nombresDeLosModelos[numeroDeLaColeccion]} con id: '+id)
 });`
     }else{
-        return `router.put('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+        return `router.put('/api/${nombresDeLosModelos[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const {id} = req.params;
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.update({_id: id}, req.body);
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}.update({_id: id}, req.body);
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Find = await _${nombresDeLosModelos[numeroDeLaColeccion]}.find();
     res.json({
-        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+        ${nombresDeLosModelos[numeroDeLaColeccion]}s: _${nombresDeLosModelos[numeroDeLaColeccion]}Find
     });
 });`
     }
@@ -156,7 +154,7 @@ function obtenerMetodoPutDeLaColeccion(numeroDeLaColeccion){
 
 function obtenerMetodoDeleteDeLaColeccion(numeroDeLaColeccion){
     if(preferencias.agregarLogin){
-        return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+        return `router.delete('/api/${nombresDeLosModelos[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const tokenClient = req.header('x-access-token');
     if(!tokenClient){
         return res.status(401).json({
@@ -174,16 +172,16 @@ function obtenerMetodoDeleteDeLaColeccion(numeroDeLaColeccion){
     }
     //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
-    res.json('Se elimino el documento de la coleccion ${tituloDeLasColecciones[numeroDeLaColeccion]} con id: '+id)
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}.remove({_id: id});
+    res.json('Se elimino el documento de la coleccion ${nombresDeLosModelos[numeroDeLaColeccion]} con id: '+id)
 });`
     }else{
-        return `router.delete('/api/${tituloDeLasColecciones[numeroDeLaColeccion]}/:id', async (req, res)=>{
+        return `router.delete('/api/${nombresDeLosModelos[numeroDeLaColeccion]}/:id', async (req, res)=>{
     const {id} = req.params;
-    await _${tituloDeLasColecciones[numeroDeLaColeccion]}.remove({_id: id});
-    const _${tituloDeLasColecciones[numeroDeLaColeccion]}Find = await _${tituloDeLasColecciones[numeroDeLaColeccion]}.find();
+    await _${nombresDeLosModelos[numeroDeLaColeccion]}.remove({_id: id});
+    const _${nombresDeLosModelos[numeroDeLaColeccion]}Find = await _${nombresDeLosModelos[numeroDeLaColeccion]}.find();
     res.json({
-        ${tituloDeLasColecciones[numeroDeLaColeccion]}s: _${tituloDeLasColecciones[numeroDeLaColeccion]}Find
+        ${nombresDeLosModelos[numeroDeLaColeccion]}s: _${nombresDeLosModelos[numeroDeLaColeccion]}Find
     });
 });`
     }
@@ -269,6 +267,7 @@ router.get('/api/user', async (req, res)=>{
         user
     })
 });
+
 //const {name, email, changepass, password} = req.body;
 router.put('/api/user', async (req, res)=>{
     const tokenClient = req.header('x-access-token');
@@ -349,9 +348,9 @@ function obtenerModeloDeLaColeccionNumero(numeroDeLaColeccion){
     return `const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
-const ${tituloDeLasColecciones[numeroDeLaColeccion]} = new Schema(${JSON.stringify(valorDeLaColeccionNumero(numeroDeLaColeccion))});
+const ${nombresDeLosModelos[numeroDeLaColeccion]} = new Schema(${JSON.stringify(valorDeLaColeccionNumero(numeroDeLaColeccion))});
 
-module.exports = mongoose.model('${tituloDeLasColecciones[numeroDeLaColeccion]}', ${tituloDeLasColecciones[numeroDeLaColeccion]});`
+module.exports = mongoose.model('${nombresDeLosModelos[numeroDeLaColeccion]}', ${nombresDeLosModelos[numeroDeLaColeccion]});`
 }
 
 /*  -- METODOS PARA CREAR LAS CARPETAS Y ARCHIVOS --  */
@@ -387,7 +386,7 @@ const app = express();
 require('./database/database.js');
 
 //configuro el puerto
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || ${preferencias.puerto});
 
 //defino la carpeta publica que enviara el servidor al cliente
 app.use(express.static( path.join( __dirname, 'public' ) ));
@@ -420,7 +419,7 @@ function generarConfiguracionDeLaBaseDeDatos(){
     try{
         let contenido = `const mongoose = require('mongoose');
 
-const _url = 'mongodb://localhost:27017/${nombreDeLaBaseDeDatos}';
+const _url = 'mongodb://localhost:27017/${preferencias.nombreBaseDeDatos}';
 
 mongoose.connect(_url, {useUnifiedTopology: true, useNewUrlParser: true})
     .then(db => console.log('Database is conected :)'))
@@ -437,7 +436,6 @@ mongoose.connect(_url, {useUnifiedTopology: true, useNewUrlParser: true})
 function generarModelos(){
     console.log("Generando los modelos...")
     let numeroDeModelos = Object.keys(colecciones).length;
-    let nombresDeLosModelos = Object.keys(colecciones);
     let ruta = "./src/models/"
     let contenido;
     if(preferencias.agregarLogin){
