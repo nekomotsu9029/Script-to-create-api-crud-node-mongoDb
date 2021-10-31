@@ -1,20 +1,31 @@
 # Como usar?
 
-Copia el script "app.js" y pegalo en la carpeta donde tendras el proyecto, luego en una consola abierta dentro de la carpeta debes configurar el script
+Copia el script "app.js" y pegalo en la carpeta donde tendras el proyecto,  luego configura el script, y por ultimo ejecuta el script desde la consola "node app.js".
 
 ## Configuracion del script
 
 const settings = {
+
     project_s_name: "generateProject",//String
+
     database_name: "exampleDb",//String
+
     server_port: 3000,//int
+
     login: true,//boolean
+
     graphql: false,//boolean
+
     collections: //obj
+
     {
+
         "client": {"type": "String", "last_name": "String", "name": "String", "town": "String"},
+
         "item": {"album": "String","year": "String", "amount":"String", "price": "String", "artist": "String"}
+
     }
+    
 };
 
 * project_s_name: es el nombre de la carpeta que almacenara tu proyecto
