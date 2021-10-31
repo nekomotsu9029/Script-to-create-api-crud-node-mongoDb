@@ -142,6 +142,26 @@ const _${vector_collections_names[i]} = require('../models/${vector_collections_
     }
     return content;
 }
+const get_data_validation = (position)=>{
+    const vector_with_the_keys_of_the_value_of_the_collection_in_position = Object.keys(get_the_value_of_the_collection_by_position(position));
+    let req_body_imports = `const {`;
+    let import_conditions = ``;
+    for(let i=0; i<vector_with_the_keys_of_the_value_of_the_collection_in_position.length; i++){
+        if(i!=0){
+            req_body_imports += `, ${vector_with_the_keys_of_the_value_of_the_collection_in_position[i]}`
+        }else{
+            req_body_imports += `${vector_with_the_keys_of_the_value_of_the_collection_in_position[i]}`
+        }
+        import_conditions += `
+    if(${vector_with_the_keys_of_the_value_of_the_collection_in_position[i]}){
+        _${vector_collections_names[position]}Find.${vector_with_the_keys_of_the_value_of_the_collection_in_position[i]} = ${vector_with_the_keys_of_the_value_of_the_collection_in_position[i]};
+    }
+`
+    }
+    req_body_imports += `} = req.body;`
+
+    return req_body_imports + import_conditions;
+}
 const get_method_get_from_collection = (position)=>{
     if(settings.login){
         return `router.get('/api/${vector_collections_names[position]}', async (req, res)=>{
@@ -198,7 +218,10 @@ const get_method_post_from_collection = (position)=>{
     //si llega aqui es por que encontro el usuario gracias al token
     const _${vector_collections_names[position]}Save = new _${vector_collections_names[position]}(req.body);
     await _${vector_collections_names[position]}Save.save();
-    res.json('Se creo el documento en la coleccion ${vector_collections_names[position]}')
+    const _${vector_collections_names[position]}Find = await _${vector_collections_names[position]}.find();
+    res.json({
+        ${vector_collections_names[position]}s: _${vector_collections_names[position]}Find
+    });
 });`
     }else{
         return `router.post('/api/${vector_collections_names[position]}', async (req, res)=>{
@@ -232,16 +255,21 @@ const get_method_put_from_collection = (position)=>{
     }
     //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
-    await _${vector_collections_names[position]}.update({_id: id}, req.body);
-    res.json('Se actualizo el documento de la coleccion ${vector_collections_names[position]} con id: '+id)
+    const _${vector_collections_names[position]}Find = await _${vector_collections_names[position]}.findOne({_id: id});
+    ${get_data_validation(position)}
+    await _${vector_collections_names[position]}.update({_id: id}, _${vector_collections_names[position]}Find);
+    res.json({
+        ${vector_collections_names[position]}: _${vector_collections_names[position]}Find
+    });
 });`
     }else{
         return `router.put('/api/${vector_collections_names[position]}/:id', async (req, res)=>{
     const {id} = req.params;
-    await _${vector_collections_names[position]}.update({_id: id}, req.body);
-    const _${vector_collections_names[position]}Find = await _${vector_collections_names[position]}.find();
+    const _${vector_collections_names[position]}Find = await _${vector_collections_names[position]}.findOne({_id: id});
+    ${get_data_validation(position)}
+    await _${vector_collections_names[position]}.update({_id: id}, _${vector_collections_names[position]}Find);
     res.json({
-        ${vector_collections_names[position]}s: _${vector_collections_names[position]}Find
+        ${vector_collections_names[position]}: _${vector_collections_names[position]}Find
     });
 });`
     }
@@ -268,7 +296,10 @@ const get_method_delete_from_collection = (position)=>{
     //si llega aqui es por que encontro el usuario gracias al token
     const {id} = req.params;
     await _${vector_collections_names[position]}.remove({_id: id});
-    res.json('Se elimino el documento de la coleccion ${vector_collections_names[position]} con id: '+id)
+    const _${vector_collections_names[position]}Find = await _${vector_collections_names[position]}.find();
+    res.json({
+        ${vector_collections_names[position]}s: _${vector_collections_names[position]}Find
+    });
 });`
     }else{
         return `router.delete('/api/${vector_collections_names[position]}/:id', async (req, res)=>{
