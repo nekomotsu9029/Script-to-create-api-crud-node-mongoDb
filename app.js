@@ -6,7 +6,7 @@ const settings = {
     database_name: "exampleDb",//String
     server_port: 3000,//int
     login: true,//boolean
-    graphql: false,//boolean
+    //graphql: false,//boolean
     collections: //obj
     {
         "client": {"type": "String", "last_name": "String", "name": "String", "town": "String"},
