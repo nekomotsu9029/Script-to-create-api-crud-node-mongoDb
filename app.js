@@ -5,8 +5,8 @@ const settings = {
     project_s_name: "generateProject",//String
     database_name: "exampleDb",//String
     server_port: 3000,//int
-    login: true,//boolean
-    //graphql: false,//boolean
+    login: false,//boolean
+    socket_io: true,
     collections: //obj
     {
         "client": {"type": "String", "last_name": "String", "name": "String", "town": "String"},
@@ -20,6 +20,9 @@ const get_the_value_of_the_collection_by_position = (position) => settings.colle
 
 const generate_folder_structure = ()=>{
     try{
+        if(settings.socket_io){
+            fs.mkdirSync(`./${settings.project_s_name}/src/socket/`,{recursive:true});
+        }
         fs.mkdirSync(`./${settings.project_s_name}/src/database/`,{recursive:true});
         fs.mkdirSync(`./${settings.project_s_name}/src/models/`,{recursive:true});
         fs.mkdirSync(`./${settings.project_s_name}/src/public/`,{recursive:true});
@@ -31,6 +34,11 @@ const generate_folder_structure = ()=>{
 
 const create_main_file = ()=>{
     let content = `//requiero mis dependencias de desarrollo
+`;
+    if(settings.socket_io){
+        content += `const socket = require('./socket/socket.js');`
+    }
+    content += `
 const express = require('express');
 const morgan = require('morgan');
 const path = require('path');
@@ -55,10 +63,27 @@ app.use(express.urlencoded({
 app.use(express.json());
 
 app.use(require('./routes/routes.js'));
+`
 
+    if(settings.socket_io){
+        content += `
+//montamos el servidor en la variable http
+const http = require('http').createServer(app);
+
+//montamos el socket como middleware para que este a la escucha
+socket(http);
+
+//ponemos el servidor a la escucha de peticiones
+http.listen(app.get('port'), ()=>{
+    console.log('El servidor esta a la escucha de peticiones en el puerto', app.get('port'));
+});`
+    }else{
+        content += `
 app.listen(app.get('port'), ()=>{
     console.log('el servidor esta a la escucha de peticiones en el puerto', app.get('port'));
 })`
+    }
+
     try{
         fs.writeFileSync(`./${settings.project_s_name}/src/server.js`, content)
     }catch(e){
@@ -484,16 +509,79 @@ module.exports = router;`;
     }
 }
 
+const create_socket_file = ()=>{
+    const content = `module.exports = (http)=>{
+    
+        const io = require('socket.io')(http);
+        
+        io.on('connection', (socket)=>{
+        
+            console.log('User Connected');
+            
+            socket.on('chat-client', (obj)=>{
+                io.emit('chat-server', obj);            
+            });
+            
+            socket.on('disconnect', (obj)=>{
+                console.log('User Disconnected');
+            });
+            
+        });
+        
+    }`
+    try{
+        if(settings.socket_io){
+            fs.writeFileSync(`./${settings.project_s_name}/src/socket/socket.js`, content);
+        }        
+    }catch(e){
+        console.log('Err in create_socket_file | '+e)
+    }
+}
+
 const create_readme_file = ()=>{
     let additional_modules;
     if(settings.login){additional_modules += `bcrypt-nodejs jsonwebtoken`}
-    if(settings.graphql){additional_modules += `express-graphql graphql`}
+    if(settings.socket_io){additional_modules += `socket.io@2.3.0`}
 
     let content = `Abre una terminar el la carpeta del proyecto y ejecuta paso a paso los siguientes comandos:
 
 1. npm init -y
 2. npm install express mongoose morgan cors ${additional_modules}
 3. node src/server.js`
+
+    if(settings.socket_io){
+        content += `
+        
+recuerda! para usar el socket debes poner esta linea en tu documento html
+
+"<script src="/socket.io/socket.io.js"></script>"
+
+luego en un js puedes usar los dos metodos "on" y "emit" de la variable "socket"
+
+const socket = io();
+
+Aqui un ejemplo practico:
+
+<button id="test-chat">mandar un hola mundo al socket</button>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    const socket = io();
+
+    socket.on('chat-server', (obj)=>{
+        console.log('esto te envia el servidor: '+JSON.stringify(obj))
+    })
+
+    document.querySelector("#test-chat").addEventListener('click', function(){
+        socket.emit('chat-client', {message: 'hola mundo'})
+    })
+    
+</script>
+
+`
+    }
+
     let re = /undefined/g;
     content = content.replace(re, '')
     try{
@@ -508,4 +596,5 @@ create_main_file();
 create_file_with_database_connection();
 create_files_with_collection_schemas();
 create_routes_file();
+create_socket_file();
 create_readme_file();
